@@ -1,10 +1,9 @@
-package webssh
+package utils
 
 import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -54,7 +53,6 @@ type SshConn struct {
 //flushComboOutput flush ssh.session combine output into websocket response
 func flushComboOutput(w *wsBufferWriter, wsConn *websocket.Conn) error {
 	if w.buffer.Len() != 0 {
-		fmt.Println(websocket.TextMessage)
 		err := wsConn.WriteMessage(websocket.TextMessage, w.buffer.Bytes())
 		if err != nil {
 			return err
@@ -120,7 +118,6 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 		default:
 			//read websocket msg
 			_, wsData, err := wsConn.ReadMessage()
-			fmt.Print(wsData)
 			if err != nil {
 				logrus.WithError(err).Error("reading webSocket message failed")
 				return
@@ -128,7 +125,6 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 			//unmashal bytes into struct
 			msgObj := wsMsg{}
 			if err := json.Unmarshal(wsData, &msgObj); err != nil {
-				fmt.Print("错误1  ReceiveWsMsg")
 				logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
 			}
 			switch msgObj.Type {
@@ -168,7 +164,6 @@ func (ssConn *SshConn) SendComboOutput(wsConn *websocket.Conn, exitCh chan bool)
 		select {
 		case <-tick.C:
 			//write combine output bytes into websocket response
-			//fmt.Println(ssConn.ComboOutput)
 			if err := flushComboOutput(ssConn.ComboOutput, wsConn); err != nil {
 				logrus.WithError(err).Error("ssh sending combo output to webSocket failed")
 				return

@@ -1,41 +1,15 @@
-package webssh
+package internal
 
 import (
 	"bytes"
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"net/http"
-	"strconv"
-	"time"
 )
-
-func jsonError(c *gin.Context, msg interface{}) {
-	c.AbortWithStatusJSON(200, gin.H{"ok": false, "msg": msg})
-}
-
-func handleError(c *gin.Context, err error) bool {
-	if err != nil {
-		//logrus.WithError(err).Error("gin context http handler error")
-		fmt.Print("错误")
-		jsonError(c, err.Error())
-		return true
-	}
-	return false
-}
-
-func wshandleError(ws *websocket.Conn, err error) bool {
-	if err != nil {
-		logrus.WithError(err).Error("handler ws ERROR:")
-		dt := time.Now().Add(time.Second)
-		if err := ws.WriteControl(websocket.CloseMessage, []byte(err.Error()), dt); err != nil {
-			logrus.WithError(err).Error("websocket writes control message failed:")
-		}
-		return true
-	}
-	return false
-}
 
 var upGrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -58,7 +32,7 @@ func WsSsh(c *gin.Context) {
 	defer wsConn.Close()
 
 	//cIp := c.ClientIP()
-	//fmt.Println(cIp)
+	//
 	//userM, err := getAuthUser(c)
 	//if handleError(c, err) {
 	//	return
@@ -71,13 +45,11 @@ func WsSsh(c *gin.Context) {
 	if wshandleError(wsConn, err) {
 		return
 	}
-	fmt.Println(cols, rows)
-
 	//idx, err := parseParamID(c)
 	//if wshandleError(wsConn, err) {
 	//	return
 	//}
-
+	//mc, err := models.MachineFind(idx)
 	//if wshandleError(wsConn, err) {
 	//	return
 	//}
@@ -87,7 +59,7 @@ func WsSsh(c *gin.Context) {
 		return
 	}
 	defer client.Close()
-
+	//startTime := time.Now()
 	ssConn, err := NewSshConn(cols, rows, client)
 	if wshandleError(wsConn, err) {
 		return
@@ -97,11 +69,11 @@ func WsSsh(c *gin.Context) {
 	quitChan := make(chan bool, 3)
 
 	var logBuff = new(bytes.Buffer)
-
+	fmt.Print(logBuff)
 	// most messages are ssh output, not webSocket input
 	go ssConn.ReceiveWsMsg(wsConn, logBuff, quitChan)
 	go ssConn.SendComboOutput(wsConn, quitChan)
-	//go ssConn.SessionWait(quitChan)
+	go ssConn.SessionWait(quitChan)
 
 	<-quitChan
 	//write logs
