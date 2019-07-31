@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
-	"github.com/hequan2017/go-test/webssh"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
@@ -19,6 +18,7 @@ func jsonError(c *gin.Context, msg interface{}) {
 func handleError(c *gin.Context, err error) bool {
 	if err != nil {
 		//logrus.WithError(err).Error("gin context http handler error")
+		fmt.Print("错误")
 		jsonError(c, err.Error())
 		return true
 	}
@@ -57,8 +57,8 @@ func WsSsh(c *gin.Context) {
 	}
 	defer wsConn.Close()
 
-	cIp := c.ClientIP()
-	fmt.Print(cIp)
+	//cIp := c.ClientIP()
+	//fmt.Println(cIp)
 	//userM, err := getAuthUser(c)
 	//if handleError(c, err) {
 	//	return
@@ -71,24 +71,24 @@ func WsSsh(c *gin.Context) {
 	if wshandleError(wsConn, err) {
 		return
 	}
+	fmt.Println(cols, rows)
 
 	//idx, err := parseParamID(c)
 	//if wshandleError(wsConn, err) {
 	//	return
 	//}
 
-	if wshandleError(wsConn, err) {
-		return
-	}
+	//if wshandleError(wsConn, err) {
+	//	return
+	//}
 
-	client, err := webssh.NewSshClient()
+	client, err := NewSshClient()
 	if wshandleError(wsConn, err) {
 		return
 	}
 	defer client.Close()
-	startTime := time.Now()
-	fmt.Print(startTime)
-	ssConn, err := webssh.NewSshConn(cols, rows, client)
+
+	ssConn, err := NewSshConn(cols, rows, client)
 	if wshandleError(wsConn, err) {
 		return
 	}
@@ -101,7 +101,7 @@ func WsSsh(c *gin.Context) {
 	// most messages are ssh output, not webSocket input
 	go ssConn.ReceiveWsMsg(wsConn, logBuff, quitChan)
 	go ssConn.SendComboOutput(wsConn, quitChan)
-	go ssConn.SessionWait(quitChan)
+	//go ssConn.SessionWait(quitChan)
 
 	<-quitChan
 	//write logs

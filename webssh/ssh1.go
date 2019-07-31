@@ -3,7 +3,6 @@ package webssh
 import (
 	"bytes"
 	"fmt"
-	"github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh"
 	"time"
 )
@@ -16,11 +15,11 @@ func NewSshClient() (*ssh.Client, error) {
 		//HostKeyCallback: hostKeyCallBackFunc(h.Host),
 	}
 	//if h.Type == "password" {
-	config.Auth = []ssh.AuthMethod{ssh.Password("123456")}
+	config.Auth = []ssh.AuthMethod{ssh.Password("He.he123")}
 	//} else {
 	//	config.Auth = []ssh.AuthMethod{publicKeyAuthFunc(h.Key)}
 	//}
-	addr := fmt.Sprintf("%s:%d", "192.168.100.200", "22")
+	addr := fmt.Sprintf("%s:%d", "192.168.100.200", 22)
 	c, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		return nil, err
