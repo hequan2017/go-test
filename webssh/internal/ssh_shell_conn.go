@@ -2,8 +2,6 @@ package internal
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/json"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
@@ -123,10 +121,15 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 				return
 			}
 			//unmashal bytes into struct
-			msgObj := wsMsg{}
-			if err := json.Unmarshal(wsData, &msgObj); err != nil {
-				logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
+			msgObj := wsMsg{
+				Type: "cmd",
+				Cmd:  "",
+				Rows: 50,
+				Cols: 180,
 			}
+			//if err := json.Unmarshal(wsData, &msgObj); err != nil {
+			//	logrus.WithError(err).WithField("wsData", string(wsData)).Error("unmarshal websocket message failed")
+			//}
 			switch msgObj.Type {
 			case wsMsgResize:
 				//handle xterm.js size change
@@ -137,7 +140,8 @@ func (ssConn *SshConn) ReceiveWsMsg(wsConn *websocket.Conn, logBuff *bytes.Buffe
 				}
 			case wsMsgCmd:
 				//handle xterm.js stdin
-				decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+				//decodeBytes, err := base64.StdEncoding.DecodeString(msgObj.Cmd)
+				decodeBytes := wsData
 				if err != nil {
 					logrus.WithError(err).Error("websock cmd string base64 decoding failed")
 				}

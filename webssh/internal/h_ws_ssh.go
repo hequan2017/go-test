@@ -2,7 +2,6 @@ package internal
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -37,6 +36,7 @@ func WsSsh(c *gin.Context) {
 	//if handleError(c, err) {
 	//	return
 	//}
+
 	cols, err := strconv.Atoi(c.DefaultQuery("cols", "120"))
 	if wshandleError(wsConn, err) {
 		return
@@ -61,6 +61,7 @@ func WsSsh(c *gin.Context) {
 	defer client.Close()
 	//startTime := time.Now()
 	ssConn, err := NewSshConn(cols, rows, client)
+
 	if wshandleError(wsConn, err) {
 		return
 	}
@@ -69,7 +70,7 @@ func WsSsh(c *gin.Context) {
 	quitChan := make(chan bool, 3)
 
 	var logBuff = new(bytes.Buffer)
-	fmt.Print(logBuff)
+
 	// most messages are ssh output, not webSocket input
 	go ssConn.ReceiveWsMsg(wsConn, logBuff, quitChan)
 	go ssConn.SendComboOutput(wsConn, quitChan)

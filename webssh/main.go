@@ -47,6 +47,6 @@ func Cors() gin.HandlerFunc {
 func main() {
 	r := gin.Default()
 	r.Use(Cors())
-	r.GET("/ws/:id/:id1", internal.WsSsh)
+	r.GET("/ws/:id", internal.WsSsh)
 	_ = r.Run() // listen and serve on 0.0.0.0:8080
 }
